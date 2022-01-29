@@ -472,7 +472,7 @@ public class GunScript : MonoBehaviour {
 		
 
 			handsAnimator.SetBool("reloading",true);
-			yield return new WaitForSeconds(0.5f);
+			yield return new WaitForSeconds(0.0f);
 			handsAnimator.SetBool("reloading",false);
 
 
