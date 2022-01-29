@@ -3,3 +3,7 @@ git add .
 git commit -m "uj verzio"
 git push
 ------------------------
+
+git pull
+
+------------------------
