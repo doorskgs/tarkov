@@ -424,7 +424,11 @@ MonoBehaviour:
   gunsIHave:
   - NewGun_semi
   - NewGun_auto
-  icons: []
+  - AKM
+  icons:
+  - {fileID: 2800000, guid: 7292f645408434cb896aaee2fd9c2a14, type: 3}
+  - {fileID: 2800000, guid: 3b3627bffda08db40b672bea34561e44, type: 3}
+  - {fileID: 2800000, guid: 127c3b6c562607c4a9ce5d367f6e1fca, type: 3}
   switchWeaponCooldown: 0
   menuStyle: 0
   spacing: 10
