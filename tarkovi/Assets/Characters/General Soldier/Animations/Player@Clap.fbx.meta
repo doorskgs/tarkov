@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:tarkovi/Assets/Characters/General Soldier/Animations/Player@Clap.fbx.meta
 guid: b9defa31ff4b8d845a313853242c673d
+=======
+guid: 5003fb72bff211349b1c3c8dd32dcf82
+>>>>>>> 1f165b40c1a8b2e51ce41211832bfefa8e84634e:tarkovi/Assets/Characters/Sebastian/Animations/futas.fbx.meta
 ModelImporter:
   serializedVersion: 22102
   internalIDToNameTable:
