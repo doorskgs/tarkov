@@ -238,13 +238,12 @@ GameObject:
   - component: {fileID: 479812}
   - component: {fileID: 3382226}
   - component: {fileID: 13695512}
-  - component: {fileID: 2306104}
   - component: {fileID: 5427112}
   - component: {fileID: 11415148}
   - component: {fileID: 11478776}
   - component: {fileID: 11414154}
   m_Layer: 9
-  m_Name: Player
+  m_Name: FPS Player
   m_TagString: Player
   m_Icon: {fileID: -964228994112308473, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
@@ -265,7 +264,7 @@ Transform:
   - {fileID: 431846}
   - {fileID: 4730053225657608}
   m_Father: {fileID: 0}
-  m_RootOrder: -1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &3382226
 MeshFilter:
@@ -284,53 +283,11 @@ CapsuleCollider:
   m_GameObject: {fileID: 173116}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 1
+  m_Enabled: 0
   m_Radius: 0.3
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!23 &2306104
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 173116}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 1
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!54 &5427112
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -367,6 +324,9 @@ MonoBehaviour:
   deaccelerationSpeed: 20
   accelerationSpeed: 100000
   grounded: 0
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 256
   bulletSpawn: {fileID: 0}
   been_to_meele_anim: 0
   bloodEffect: {fileID: 1013274939826982, guid: ffbf169ab9dcfdc45ae14010bc82a6b2,
@@ -388,26 +348,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f828f55f50faf4017b1bfaaca53ebd71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mouseSensitvity: 0
+  yRotationSpeed: 0.1
+  xCameraSpeed: 0.1
+  topAngleView: 60
+  bottomAngleView: -45
+  showFps: 1
+  weapon: {fileID: 0}
   myCamera: {fileID: 431846}
+  mouseSensitvity_notAiming: 10
+  mouseSensitvity_aiming: 5
+  wantedYRotation: 0
+  currentYRotation: 0
+  wantedCameraXRotation: 0
+  currentCameraXRotation: 0
   timer: 0
   int_timer: 0
   zRotation: 0
   wantedZ: 0
   timeSpeed: 2
   timerToRotateZ: 0
-  mouseSensitvity: 0
-  mouseSensitvity_notAiming: 10
-  mouseSensitvity_aiming: 5
-  yRotationSpeed: 0.1
-  xCameraSpeed: 0.1
-  wantedYRotation: 0
-  currentYRotation: 0
-  wantedCameraXRotation: 0
-  currentCameraXRotation: 0
-  topAngleView: 60
-  bottomAngleView: -45
-  weapon: {fileID: 0}
-  showFps: 1
 --- !u!114 &11414154
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -426,9 +386,9 @@ MonoBehaviour:
   - NewGun_auto
   - AKM
   icons:
-  - {fileID: 2800000, guid: 7292f645408434cb896aaee2fd9c2a14, type: 3}
-  - {fileID: 2800000, guid: 3b3627bffda08db40b672bea34561e44, type: 3}
-  - {fileID: 2800000, guid: 127c3b6c562607c4a9ce5d367f6e1fca, type: 3}
+  - {fileID: 2800000, guid: 4cc45e4dad006426e8c62aff1240b894, type: 3}
+  - {fileID: 2800000, guid: 4cc45e4dad006426e8c62aff1240b894, type: 3}
+  - {fileID: 2800000, guid: 4cc45e4dad006426e8c62aff1240b894, type: 3}
   switchWeaponCooldown: 0
   menuStyle: 0
   spacing: 10

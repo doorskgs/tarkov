@@ -38,7 +38,7 @@ public class AnimationStateControl : MonoBehaviour
     {
         if (anim == null)
             TryGetComponent(out anim);
-        aimHelperFrontDistance = AimHelperTransform.position.z - WeaponSlotBaseTransform.position.z;
+        aimHelperFrontDistance = (AimHelperTransform.position - WeaponSlotBaseTransform.position).magnitude;
     }
 
     public void SetMoveAnimation(MoveAnimationState state)
@@ -67,7 +67,6 @@ public class AnimationStateControl : MonoBehaviour
         Debug.DrawRay(WeaponSlotBaseTransform.position, AimDirection * 1000f, Color.red);
 #endif
         // put AimHelper T to direction, so that it drives TPS LookAround IK rig
-        AimHelperTransform.position = WeaponSlotBaseTransform.position + AimDirection * aimHelperFrontDistance;
         // rotate player towards aim in Y axis
         //transform.rotation = aim
 
@@ -81,6 +80,13 @@ public class AnimationStateControl : MonoBehaviour
     public void SetLookAt(Vector3 dir)
     {
         AimDirection = dir.normalized;
+
+        AimHelperTransform.position = WeaponSlotBaseTransform.position + AimDirection * aimHelperFrontDistance;
+
+        //Quaternion rot = transform.rotation;
+        //rot.y = AimDirection.y;
+        ////Quaternion.LookRotation();
+        //transform.rotation = rot;
     }
 
     public void SetLookAt(Quaternion dir)

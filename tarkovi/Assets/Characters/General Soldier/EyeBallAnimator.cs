@@ -16,6 +16,6 @@ public class EyeBallAnimator : MonoBehaviour
         transform.LookAt(target, Vector3.up);
         Debug.DrawRay(transform.position, transform.forward * (target.position - transform.position).magnitude, Color.cyan);
 
-        //transform.localRotation = transform.parent.parent.rotation;
+        transform.localRotation = transform.parent.parent.rotation;
     }
 }

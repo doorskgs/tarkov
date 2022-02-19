@@ -5,18 +5,30 @@ using System.Collections;
 public enum GunStyles{
 	nonautomatic,automatic
 }
-public class GunScript : MonoBehaviour {
-	[Tooltip("Selects type of waepon to shoot rapidly or one bullet per click.")]
+public class GunScript : MonoBehaviour, IAimProvider {
+
+    #region public
+	[Header("Prefabs to spawn")]
+	[Tooltip("Bullet prefab that this waepon will shoot.")]
+	public GameObject bullet;
+	[Tooltip("Array of muzzel flashes, randmly one will appear after each bullet.")]
+	public GameObject[] muzzelFlash;
+	[Tooltip("Place on the gun where muzzel flash will appear.")]
+	public GameObject muzzelSpawn;
+
+	//[Space(12)]
+
+	[Space(40)]
+	[Header("Ossze-vissza:")]
+
+    [Tooltip("Selects type of weapon to shoot rapidly or one bullet per click.")]
 	public GunStyles currentStyle;
-	[HideInInspector]
-	public MouseLookScript mls;
 
 	[Header("Player movement properties")]
 	[Tooltip("Speed is determined via gun because not every gun has same properties or weights so you MUST set up your speeds here")]
 	public int walkingSpeed = 3;
 	[Tooltip("Speed is determined via gun because not every gun has same properties or weights so you MUST set up your speeds here")]
 	public int runningSpeed = 5;
-
 
 	[Header("Bullet properties")]
 	[Tooltip("Preset value to tell with how many bullets will our waepon spawn aside.")]
@@ -26,11 +38,153 @@ public class GunScript : MonoBehaviour {
 	[Tooltip("Preset value to tell how much bullets can one magazine carry.")]
 	public float amountOfBulletsPerLoad = 5;
 
+	[Header("Sensitvity of the gun")]
+	[Tooltip("Sensitvity of this gun while not aiming.")]
+	public float mouseSensitvity_notAiming = 10;
+	//[HideInInspector]
+	[Tooltip("Sensitvity of this gun while aiming.")]
+	public float mouseSensitvity_aiming = 5;
+	//[HideInInspector]
+	[Tooltip("Sensitvity of this gun while running.")]
+	public float mouseSensitvity_running = 4;
+	[Header("Gun Positioning")]
+	[Tooltip("Vector 3 position from player SETUP for NON AIMING values")]
+	public Vector3 restPlacePosition;
+	[Tooltip("Vector 3 position from player SETUP for AIMING values")]
+	public Vector3 aimPlacePosition;
+	[Tooltip("Time that takes for gun to get into aiming stance.")]
+	public float gunAimTime = 0.1f;
+	[Tooltip("Rounds per second if weapon is set to automatic rafal.")]
+	public float roundsPerSecond;
+
+
+	[Header("Crosshair properties")]
+	public Texture horizontal_crosshair, vertical_crosshair;
+	public Vector2 top_pos_crosshair, bottom_pos_crosshair, left_pos_crosshair, right_pos_crosshair;
+	public Vector2 size_crosshair_vertical = new Vector2(1, 1), size_crosshair_horizontal = new Vector2(1, 1);
+	[Header("Animation names")]
+	public string reloadAnimationName = "Player_Reload";
+	public string aimingAnimationName = "Player_AImpose";
+	public string meeleAnimationName = "Character_Malee";
+	public Animator handsAnimator;
+
+
+	[Header("Recoil Not Aiming")]
+	[Tooltip("Recoil amount on that AXIS while NOT aiming")]
+	public float recoilAmount_z_non = 0.5f;
+	[Tooltip("Recoil amount on that AXIS while NOT aiming")]
+	public float recoilAmount_x_non = 0.5f;
+	[Tooltip("Recoil amount on that AXIS while NOT aiming")]
+	public float recoilAmount_y_non = 0.5f;
+	[Header("Recoil Aiming")]
+	[Tooltip("Recoil amount on that AXIS while aiming")]
+	public float recoilAmount_z_ = 0.5f;
+	[Tooltip("Recoil amount on that AXIS while aiming")]
+	public float recoilAmount_x_ = 0.5f;
+	[Tooltip("Recoil amount on that AXIS while aiming")]
+	public float recoilAmount_y_ = 0.5f;
+	[HideInInspector] public float velocity_z_recoil, velocity_x_recoil, velocity_y_recoil;
+	[Header("")]
+	[Tooltip("The time that takes weapon to get back on its original axis after recoil.(The smaller number the faster it gets back to original position)")]
+	public float recoilOverTime_z = 0.5f;
+	[Tooltip("The time that takes weapon to get back on its original axis after recoil.(The smaller number the faster it gets back to original position)")]
+	public float recoilOverTime_x = 0.5f;
+	[Tooltip("The time that takes weapon to get back on its original axis after recoil.(The smaller number the faster it gets back to original position)")]
+	public float recoilOverTime_y = 0.5f;
+
+	[Header("Gun Precision")]
+	[Tooltip("Gun rate precision when player is not aiming. THis is calculated with recoil.")]
+	public float gunPrecision_notAiming = 200.0f;
+	[Tooltip("Gun rate precision when player is aiming. THis is calculated with recoil.")]
+	public float gunPrecision_aiming = 100.0f;
+	[Tooltip("FOV of first camera when NOT aiming(ONLY SECOND CAMERA RENDERS WEAPONS")]
+	public float cameraZoomRatio_notAiming = 60;
+	[Tooltip("FOV of first camera when aiming(ONLY SECOND CAMERA RENDERS WEAPONS")]
+	public float cameraZoomRatio_aiming = 40;
+	[Tooltip("FOV of second camera when NOT aiming(ONLY SECOND CAMERA RENDERS WEAPONS")]
+	public float secondCameraZoomRatio_notAiming = 60;
+	[Tooltip("FOV of second camera when aiming(ONLY SECOND CAMERA RENDERS WEAPONS")]
+	public float secondCameraZoomRatio_aiming = 40;
+
+	[Tooltip("Audios for shootingSound, and reloading.")]
+	public AudioSource shoot_sound_source, reloadSound_source;
+	[Tooltip("Sound that plays after successful attack bullet hit.")]
+	public static AudioSource hitMarker;
+	[Header("reload time after anima")]
+	[Tooltip("Time that passes after reloading. Depends on your reload animation length, because reloading can be interrupted via meele attack or running. So any action before this finishes will interrupt reloading.")]
+	public float reloadChangeBulletsTime;
+	[Tooltip("The time waepon will lag behind the camera view best set to '0'.")]
+	public float rotationLagTime = 0f;
+	[Tooltip("Value of forward rotation multiplier.")]
+	public Vector2 forwardRotationAmount = Vector2.one;
+
+	#endregion
+
+	public Ray AimDirection => new Ray(bulletSpawnPlace.transform.position, bulletSpawnPlace.transform.forward);
+
+	#region public non-inspector
+	[HideInInspector]
+	public Transform mainCamera;
+	[HideInInspector]
+	public MouseLookScript mls;
+	[HideInInspector]
+	public bool reloading;
+	[HideInInspector]
+	public Vector3 currentGunPosition;
+	[HideInInspector]
+	public bool meeleAttack;
+	[HideInInspector]
+	public bool aiming;
+	[HideInInspector]
+	public float gunPrecision;
+
+	#endregion
+
+	#region private
+
 	private Transform player;
 	private Camera cameraComponent;
 	private Transform gunPlaceHolder;
 
 	private PlayerMovementScript pmS;
+
+	private Vector3 gunPosVelocity;
+	private float cameraZoomVelocity;
+	private float secondCameraZoomVelocity;
+
+	private Vector2 gunFollowTimeVelocity;
+
+	private GameObject holdFlash;
+	private GameObject holdSmoke;
+	private float startLook, startAim, startRun;
+
+	private Vector3 velV;
+	private Camera secondCamera;
+	private Vector2 velocityGunRotate;
+	private float gunWeightX, gunWeightY;
+	private float rotationLastY;
+	private float rotationDeltaY;
+	private float angularVelocityY;
+	private float rotationLastX;
+	private float rotationDeltaX;
+	private float angularVelocityX;
+
+	[HideInInspector] public GameObject bulletSpawnPlace;
+	private float waitTillNextFire;
+
+	private float currentRecoilZPos;
+	private float currentRecoilXPos;
+	private float currentRecoilYPos;
+	[HideInInspector] public float recoilAmount_z = 0.5f;
+	[HideInInspector] public float recoilAmount_x = 0.5f;
+	[HideInInspector] public float recoilAmount_y = 0.5f;
+
+
+	[HideInInspector]
+	public Vector2 expandValues_crosshair;
+	private float fadeout_value = 1;
+
+	#endregion
 
 	/*
 	 * Collection the variables upon awake that we need.
@@ -56,26 +210,6 @@ public class GunScript : MonoBehaviour {
 		rotationLastX= mls.currentCameraXRotation;
 
 	}
-
-
-	[HideInInspector]
-	public Vector3 currentGunPosition;
-	[Header("Gun Positioning")]
-	[Tooltip("Vector 3 position from player SETUP for NON AIMING values")]
-	public Vector3 restPlacePosition;
-	[Tooltip("Vector 3 position from player SETUP for AIMING values")]
-	public Vector3 aimPlacePosition;
-	[Tooltip("Time that takes for gun to get into aiming stance.")]
-	public float gunAimTime = 0.1f;
-
-	[HideInInspector]
-	public bool reloading;
-
-	private Vector3 gunPosVelocity;
-	private float cameraZoomVelocity;
-	private float secondCameraZoomVelocity;
-
-	private Vector2 gunFollowTimeVelocity;
 
 	/*
 	Update loop calling for methods that are descriped below where they are initiated.
@@ -135,15 +269,6 @@ public class GunScript : MonoBehaviour {
 
 	}
 
-	[Header("Sensitvity of the gun")]
-	[Tooltip("Sensitvity of this gun while not aiming.")]
-	public float mouseSensitvity_notAiming = 10;
-	//[HideInInspector]
-	[Tooltip("Sensitvity of this gun while aiming.")]
-	public float mouseSensitvity_aiming = 5;
-	//[HideInInspector]
-	[Tooltip("Sensitvity of this gun while running.")]
-	public float mouseSensitvity_running = 4;
 	/*
 	 * Used to give our main camera different sensivity options for each gun.
 	 */
@@ -198,10 +323,6 @@ public class GunScript : MonoBehaviour {
 
 	}
 
-	[HideInInspector]
-	public bool meeleAttack;
-	[HideInInspector]
-	public bool aiming;
 	/*
 	 * Checking if meeleAttack is already running.
 	 * If we are not reloading we can trigger the MeeleAttack animation from the IENumerator.
@@ -231,7 +352,6 @@ public class GunScript : MonoBehaviour {
 		handsAnimator.SetBool("meeleAttack",false);
 	}
 
-	private float startLook, startAim, startRun;
 	/*
 	* Setting the mouse sensitvity lower when meele attack and waits till it ends.
 	*/
@@ -247,11 +367,6 @@ public class GunScript : MonoBehaviour {
 		}
 	}
 
-
-	private Vector3 velV;
-	[HideInInspector]
-	public Transform mainCamera;
-	private Camera secondCamera;
 	/*
 	 * Calculatin the weapon position accordingly to the player position and rotation.
 	 * After calculation the recoil amount are decreased to 0.
@@ -274,19 +389,6 @@ public class GunScript : MonoBehaviour {
 	}
 
 
-	[Header("Rotation")]
-	private Vector2 velocityGunRotate;
-	private float gunWeightX,gunWeightY;
-	[Tooltip("The time waepon will lag behind the camera view best set to '0'.")]
-	public float rotationLagTime = 0f;
-	private float rotationLastY;
-	private float rotationDeltaY;
-	private float angularVelocityY;
-	private float rotationLastX;
-	private float rotationDeltaX;
-	private float angularVelocityX;
-	[Tooltip("Value of forward rotation multiplier.")]
-	public Vector2 forwardRotationAmount = Vector2.one;
 	/*
 	* Rotatin the weapon according to mouse look rotation.
 	* Calculating the forawrd rotation like in Call Of Duty weapon weight
@@ -308,9 +410,6 @@ public class GunScript : MonoBehaviour {
 		transform.rotation = Quaternion.Euler (gunWeightX + (angularVelocityX*forwardRotationAmount.x), gunWeightY + (angularVelocityY*forwardRotationAmount.y), 0);
 	}
 
-	private float currentRecoilZPos;
-	private float currentRecoilXPos;
-	private float currentRecoilYPos;
 	/*
 	 * Called from ShootMethod();, upon shooting the recoil amount will increase.
 	 */
@@ -325,13 +424,6 @@ public class GunScript : MonoBehaviour {
 
 	}
 
-	[Header("Shooting setup - MUSTDO")]
-	[HideInInspector] public GameObject bulletSpawnPlace;
-	[Tooltip("Bullet prefab that this waepon will shoot.")]
-	public GameObject bullet;
-	[Tooltip("Rounds per second if weapon is set to automatic rafal.")]
-	public float roundsPerSecond;
-	private float waitTillNextFire;
 	/*
 	 * Checking if the gun is automatic or nonautomatic and accordingly runs the ShootMethod();.
 	 */
@@ -353,52 +445,6 @@ public class GunScript : MonoBehaviour {
 	}
 
 
-	[HideInInspector]	public float recoilAmount_z = 0.5f;
-	[HideInInspector]	public float recoilAmount_x = 0.5f;
-	[HideInInspector]	public float recoilAmount_y = 0.5f;
-	[Header("Recoil Not Aiming")]
-	[Tooltip("Recoil amount on that AXIS while NOT aiming")]
-	public float recoilAmount_z_non = 0.5f;
-	[Tooltip("Recoil amount on that AXIS while NOT aiming")]
-	public float recoilAmount_x_non = 0.5f;
-	[Tooltip("Recoil amount on that AXIS while NOT aiming")]
-	public float recoilAmount_y_non = 0.5f;
-	[Header("Recoil Aiming")]
-	[Tooltip("Recoil amount on that AXIS while aiming")]
-	public float recoilAmount_z_ = 0.5f;
-	[Tooltip("Recoil amount on that AXIS while aiming")]
-	public float recoilAmount_x_ = 0.5f;
-	[Tooltip("Recoil amount on that AXIS while aiming")]
-	public float recoilAmount_y_ = 0.5f;
-	[HideInInspector]public float velocity_z_recoil,velocity_x_recoil,velocity_y_recoil;
-	[Header("")]
-	[Tooltip("The time that takes weapon to get back on its original axis after recoil.(The smaller number the faster it gets back to original position)")]
-	public float recoilOverTime_z = 0.5f;
-	[Tooltip("The time that takes weapon to get back on its original axis after recoil.(The smaller number the faster it gets back to original position)")]
-	public float recoilOverTime_x = 0.5f;
-	[Tooltip("The time that takes weapon to get back on its original axis after recoil.(The smaller number the faster it gets back to original position)")]
-	public float recoilOverTime_y = 0.5f;
-
-	[Header("Gun Precision")]
-	[Tooltip("Gun rate precision when player is not aiming. THis is calculated with recoil.")]
-	public float gunPrecision_notAiming = 200.0f;
-	[Tooltip("Gun rate precision when player is aiming. THis is calculated with recoil.")]
-	public float gunPrecision_aiming = 100.0f;
-	[Tooltip("FOV of first camera when NOT aiming(ONLY SECOND CAMERA RENDERS WEAPONS")]
-	public float cameraZoomRatio_notAiming = 60;
-	[Tooltip("FOV of first camera when aiming(ONLY SECOND CAMERA RENDERS WEAPONS")]
-	public float cameraZoomRatio_aiming = 40;
-	[Tooltip("FOV of second camera when NOT aiming(ONLY SECOND CAMERA RENDERS WEAPONS")]
-	public float secondCameraZoomRatio_notAiming = 60;
-	[Tooltip("FOV of second camera when aiming(ONLY SECOND CAMERA RENDERS WEAPONS")]
-	public float secondCameraZoomRatio_aiming = 40;
-	[HideInInspector]
-	public float gunPrecision;
-
-	[Tooltip("Audios for shootingSound, and reloading.")]
-	public AudioSource shoot_sound_source, reloadSound_source;
-	[Tooltip("Sound that plays after successful attack bullet hit.")]
-	public static AudioSource hitMarker;
 
 	/*
 	* Sounds that is called upon hitting the target.
@@ -407,12 +453,6 @@ public class GunScript : MonoBehaviour {
 		hitMarker.Play();
 	}
 
-	[Tooltip("Array of muzzel flashes, randmly one will appear after each bullet.")]
-	public GameObject[] muzzelFlash;
-	[Tooltip("Place on the gun where muzzel flash will appear.")]
-	public GameObject muzzelSpawn;
-	private GameObject holdFlash;
-	private GameObject holdSmoke;
 	/*
 	 * Called from Shooting();
 	 * Creates bullets and muzzle flashes and calls for Recoil.
@@ -424,7 +464,7 @@ public class GunScript : MonoBehaviour {
 
 				int randomNumberForMuzzelFlash = Random.Range(0,5);
 				if (bullet)
-					Instantiate (bullet, bulletSpawnPlace.transform.position, bulletSpawnPlace.transform.rotation);
+					Instantiate(bullet, bulletSpawnPlace.transform.position, bulletSpawnPlace.transform.rotation);
 				else
 					print ("Missing the bullet prefab");
 				holdFlash = Instantiate(muzzelFlash[randomNumberForMuzzelFlash], muzzelSpawn.transform.position /*- muzzelPosition*/, muzzelSpawn.transform.rotation * Quaternion.Euler(0,0,90) ) as GameObject;
@@ -457,9 +497,6 @@ public class GunScript : MonoBehaviour {
 	* Reloading, setting the reloading to animator,
 	* Waiting for 2 seconds and then seeting the reloaded clip.
 	*/
-	[Header("reload time after anima")]
-	[Tooltip("Time that passes after reloading. Depends on your reload animation length, because reloading can be interrupted via meele attack or running. So any action before this finishes will interrupt reloading.")]
-	public float reloadChangeBulletsTime;
 	IEnumerator Reload_Animation(){
 		if(bulletsIHave > 0 && bulletsInTheGun < amountOfBulletsPerLoad && !reloading/* && !aiming*/){
 
@@ -528,13 +565,7 @@ public class GunScript : MonoBehaviour {
 		DrawCrosshair();
 	}
 
-	[Header("Crosshair properties")]
-	public Texture horizontal_crosshair, vertical_crosshair;
-	public Vector2 top_pos_crosshair, bottom_pos_crosshair, left_pos_crosshair, right_pos_crosshair;
-	public Vector2 size_crosshair_vertical = new Vector2(1,1), size_crosshair_horizontal = new Vector2(1,1);
-	[HideInInspector]
-	public Vector2 expandValues_crosshair;
-	private float fadeout_value = 1;
+
 	/*
 	 * Drawing the crossHair.
 	 */
@@ -550,28 +581,6 @@ public class GunScript : MonoBehaviour {
 
 	}
 
-	//#####		RETURN THE SIZE AND POSITION for GUI images ##################
-	private float position_x(float var){
-		return Screen.width * var / 100;
-	}
-	private float position_y(float var)
-	{
-		return Screen.height * var / 100;
-	}
-	private float size_x(float var)
-	{
-		return Screen.width * var / 100;
-	}
-	private float size_y(float var)
-	{
-		return Screen.height * var / 100;
-	}
-	private Vector2 vec2(Vector2 _vec2){
-		return new Vector2(Screen.width * _vec2.x / 100, Screen.height * _vec2.y / 100);
-	}
-	//#
-
-	public Animator handsAnimator;
 	/*
 	* Fetching if any current animation is running.
 	* Setting the reload animation upon pressing R.
@@ -592,8 +601,27 @@ public class GunScript : MonoBehaviour {
 
 	}
 
-	[Header("Animation names")]
-	public string reloadAnimationName = "Player_Reload";
-	public string aimingAnimationName = "Player_AImpose";
-	public string meeleAnimationName = "Character_Malee";
+
+
+	//#####		RETURN THE SIZE AND POSITION for GUI images ##################
+	private float position_x(float var)
+	{
+		return Screen.width * var / 100;
+	}
+	private float position_y(float var)
+	{
+		return Screen.height * var / 100;
+	}
+	private float size_x(float var)
+	{
+		return Screen.width * var / 100;
+	}
+	private float size_y(float var)
+	{
+		return Screen.height * var / 100;
+	}
+	private Vector2 vec2(Vector2 _vec2)
+	{
+		return new Vector2(Screen.width * _vec2.x / 100, Screen.height * _vec2.y / 100);
+	}
 }

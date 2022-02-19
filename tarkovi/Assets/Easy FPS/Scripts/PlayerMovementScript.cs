@@ -22,8 +22,7 @@ public class PlayerMovementScript : MonoBehaviour {
 		rb = GetComponent<Rigidbody>();
 		cameraMain = transform.Find("Main Camera").transform;
 		bulletSpawn = cameraMain.Find ("BulletSpawn").transform;
-		ignoreLayer = 1 << LayerMask.NameToLayer ("Player");
-
+		//ignoreLayer = 1 << LayerMask.NameToLayer ("Player");
 	}
 	private Vector3 slowdownV;
 	private Vector2 horizontalMovement;
@@ -144,8 +143,9 @@ public class PlayerMovementScript : MonoBehaviour {
 	*/
 	private bool RayCastGrounded(){
 		RaycastHit groundedInfo;
-		if(Physics.Raycast(transform.position, transform.up *-1f, out groundedInfo, 1, ~ignoreLayer)){
-			Debug.DrawRay (transform.position, transform.up * -1f, Color.red, 0.0f);
+		if(Physics.Raycast(transform.position, transform.up *-1f, out groundedInfo, 100f, layerMask)){
+			
+			Debug.DrawRay (transform.position, transform.up * -1f, Color.green, 0.0f);
 			if(groundedInfo.transform != null){
 				//print ("vracam true");
 				return true;
@@ -211,7 +211,7 @@ public class PlayerMovementScript : MonoBehaviour {
 	private string currentWeapo;
 	[Tooltip("Put 'Player' layer here")]
 	[Header("Shooting Properties")]
-	private LayerMask ignoreLayer;//to ignore player layer
+	public LayerMask layerMask;
 	Ray ray1, ray2, ray3, ray4, ray5, ray6, ray7, ray8, ray9;
 	private float rayDetectorMeeleSpace = 0.15f;
 	private float offsetStart = 0.05f;
@@ -282,21 +282,21 @@ public class PlayerMovementScript : MonoBehaviour {
 	 *Method that is called if the waepon hit animation has been triggered the first time via Q input
 	 *and if is, it will search for target and make damage
 	 */
-	IEnumerator MeeleAttackWeaponHit(){
-		if (Physics.Raycast (ray1, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast (ray2, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast (ray3, out hitInfo, 2f, ~ignoreLayer)
-			|| Physics.Raycast (ray4, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast (ray5, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast (ray6, out hitInfo, 2f, ~ignoreLayer)
-			|| Physics.Raycast (ray7, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast (ray8, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast (ray9, out hitInfo, 2f, ~ignoreLayer)) {
-			//Debug.DrawRay (bulletSpawn.position, bulletSpawn.forward + (bulletSpawn.right*0.2f), Color.green, 0.0f);
-			if (hitInfo.transform.tag=="Dummie") {
-				Transform _other = hitInfo.transform.root.transform;
-				if (_other.transform.tag == "Dummie") {
-					print ("hit a dummie");
-				}
-				InstantiateBlood(hitInfo,false);
-			}
-		}
-		yield return new WaitForEndOfFrame ();
-	}
+	//IEnumerator MeeleAttackWeaponHit(){
+	//	if (Physics.Raycast (ray1, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast (ray2, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast (ray3, out hitInfo, 2f, ~ignoreLayer)
+	//		|| Physics.Raycast (ray4, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast (ray5, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast (ray6, out hitInfo, 2f, ~ignoreLayer)
+	//		|| Physics.Raycast (ray7, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast (ray8, out hitInfo, 2f, ~ignoreLayer) || Physics.Raycast (ray9, out hitInfo, 2f, ~ignoreLayer)) {
+	//		//Debug.DrawRay (bulletSpawn.position, bulletSpawn.forward + (bulletSpawn.right*0.2f), Color.green, 0.0f);
+	//		if (hitInfo.transform.tag=="Dummie") {
+	//			Transform _other = hitInfo.transform.root.transform;
+	//			if (_other.transform.tag == "Dummie") {
+	//				print ("hit a dummie");
+	//			}
+	//			InstantiateBlood(hitInfo,false);
+	//		}
+	//	}
+	//	yield return new WaitForEndOfFrame ();
+	//}
 
 	[Header("BloodForMelleAttaacks")]
 	RaycastHit hit;//stores info of hit;

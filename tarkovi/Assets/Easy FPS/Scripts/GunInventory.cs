@@ -159,8 +159,6 @@ public class GunInventory : MonoBehaviour {
 
 			AssignHandsAnimator(currentGun);
 		}
-
-
 	}
 
 
@@ -171,6 +169,8 @@ public class GunInventory : MonoBehaviour {
 		if(_currentGun.name.Contains("Gun")){
 			currentHAndsAnimator = currentGun.GetComponent<GunScript>().handsAnimator;
 		}
+
+		SendMessage("__OnSwitchedGun", currentGun);
 	}
 
 	/*
@@ -179,11 +179,11 @@ public class GunInventory : MonoBehaviour {
 	 */
 	void OnGUI(){
 
-		if(currentGun){
-			for(int i = 0; i < gunsIHave.Count; i++){
-				DrawCorrespondingImage(i);
-			}
-		}
+		//if(currentGun){
+		//	for(int i = 0; i < gunsIHave.Count; i++){
+		//		DrawCorrespondingImage(i);
+		//	}
+		//}
 
 	}
 
@@ -202,7 +202,7 @@ public class GunInventory : MonoBehaviour {
 	 * The curent gun selected image has their image slightly enlared for some value.
 	 */
 	void DrawCorrespondingImage(int _number){
-
+		
 		string deleteCloneFromName = currentGun.name.Substring(0,currentGun.name.Length - 7);
 
 		if(menuStyle == MenuStyle.horizontal){
